@@ -1,0 +1,22 @@
+{
+    "name": "zorin/crm-ws-server",
+    "description": "Веб сокет сервер, прокидывающий информацию о редактировании записей между менеджерами",
+    "type": "project",
+    "authors": [
+        {
+            "name": "Aleksei Zorin",
+            "email": "a.zorin@devcaz.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "php": "7.0",
+        "workerman/workerman": "^3.5",
+        "monolog/monolog": "^2.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "app\\": "src"
+        }
+    }
+}
