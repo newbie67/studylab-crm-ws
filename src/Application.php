@@ -2,7 +2,14 @@
 
 namespace app;
 
-use app\Domain\AuthenticatorInterface;
+use app\Action\ChangeManagerStatus;
+use app\Component\Crm;
+use app\Component\RequestParser;
+use app\Domain\ActionInterface;
+use app\Domain\Component\CrmInterface;
+use app\Domain\Storage\StorageInterface;
+use app\Storage\Storage;
+use GuzzleHttp\Client;
 use Psr\Log\LoggerInterface;
 use Workerman\Connection\TcpConnection;
 use Workerman\Worker;
@@ -14,15 +21,14 @@ use Workerman\Worker;
  */
 class Application
 {
+    const ACTIONS_MAP = [
+        'changeManagerStatus' => ChangeManagerStatus::class,
+    ];
+
     /**
      * @var Worker
      */
     private $server;
-
-    /**
-     * @var string
-     */
-    private $backendAddr;
 
     /**
      * @var LoggerInterface
@@ -30,9 +36,19 @@ class Application
     private $logger;
 
     /**
-     * @var AuthenticatorInterface
+     * @var CrmInterface
      */
-    private $authenticator;
+    private $crm;
+
+    /**
+     * @var RequestParser
+     */
+    private $requestParser;
+
+    /**
+     * @var StorageInterface
+     */
+    private $storage;
 
     /**
      * Application constructor.
@@ -42,9 +58,13 @@ class Application
     public function __construct(array $config)
     {
         $this->server = new Worker('websocket://0.0.0.0:' . $config['port']);
-        $this->backendAddr = $config['backendAddr'];
 
         $this->logger = $config['logger'];
+        $guzzle = new Client(['base_uri' => $config['backendAddr']]);
+        $this->crm = new Crm($guzzle);
+        $this->requestParser = new RequestParser($this->logger);
+
+        $this->storage = new Storage();
     }
 
     /**
@@ -52,23 +72,74 @@ class Application
      */
     public function run()
     {
+        $logger = $this->logger;
+        $crm = $this->crm;
+        $requestParser = $this->requestParser;
+        $storage = $this->storage;
+
         $this->setWorkerCallbacks();
         $this->server->count = -1; // Unlimited connection count
 
-        $logger = $this->logger;
-
-        $authenticator = $this->authenticator;
-
+        /**
+         * Коллбек на установленное соединение
+         *
+         * @param TcpConnection $connection
+         */
         $this->server->onConnect = function (TcpConnection $connection) use ($logger) {
-            $this->logger->debug('New connection. Connection->id: ' . $connection->id);
+            $this->logger->info('New connection. Connection->id: ' . $connection->id);
         };
 
-        $this->server->onMessage = function (TcpConnection $connection, $data) use ($logger) {
-            $logger->debug('Got new message:' . (string)$data);
+        /**
+         * Коллбек на входящее сообщение
+         *
+         * @param TcpConnection $connection
+         * @param               $data
+         *
+         * @return void|bool
+         */
+        $this->server->onMessage = function (TcpConnection $connection, $data) use (
+            $logger,
+            $crm,
+            $requestParser,
+            $storage
+        ) {
+            $logger->info('Got new message:' . (string)$data);
+
+            // Проверка валидности запроса
+            if (false === $requestParser->isValidRequest($data)) {
+                return false;
+            }
+
+            $parsedRequest = $requestParser->getParsedRequest($data);
+            // Если токен передан верно
+            if (false === $crm->isValidToken($parsedRequest->getManagerId(), $parsedRequest->getToken())) {
+                return false;
+            }
+
+            // добавляем коннекшн в сторадж, если он ещё не добавлен и завязываем на менеджера
+            $storage->getConnectionStorage()->addConnection($connection);
+            $storage->getManagerStorage()->addManagerConnection($parsedRequest->getManagerId(), $connection->id);
+
+            // Отлавливаем текущий роут и запускаем метод
+            if (array_key_exists($parsedRequest->getAction(), self::ACTIONS_MAP)) {
+                $actionClassName = self::ACTIONS_MAP[$parsedRequest->getAction()];
+                /** @var ActionInterface $action */
+                $action = new $actionClassName($connection, $storage, $parsedRequest, $crm->getManagers());
+                $action->run($parsedRequest->getData());
+            } else {
+                $this->logger->error('Undefined action ' . $parsedRequest->getAction());
+            }
         };
 
+        /**
+         * Коллбек на закрытие соединения
+         *
+         * @param TcpConnection $connection
+         */
         $this->server->onClose = function (TcpConnection $connection) use ($logger) {
-            $logger->debug('Connection closed. Connection->id: ' . $connection->id);
+            // Прекращаем правки текущего соединения в полях и сообщаем клиентам
+            // Если это последний коннект менеджера - говорим всем, что он оффлайн
+            $logger->info('Connection closed. Connection->id: ' . $connection->id);
         };
 
         Worker::runAll();
@@ -82,13 +153,13 @@ class Application
         $logger = $this->logger;
 
         $this->server->onWorkerStart = function (Worker $worker) use ($logger) {
-            $logger->debug('Worker started');
+            $logger->info('Worker started');
         };
         $this->server->onWorkerStop = function (Worker $worker) use ($logger) {
-            $logger->debug('Worker stopped');
+            $logger->info('Worker stopped');
         };
         $this->server->onWorkerReload = function (Worker $worker) use ($logger) {
-            $logger->debug('Worker reloaded');
+            $logger->info('Worker reloaded');
         };
     }
 }
