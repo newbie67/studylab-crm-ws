@@ -20,9 +20,28 @@ class ConnectionStorage implements ConnectionStorageInterface
     private $connections = [];
 
     /**
+     * Содержит в себе время старта коннекшена, ключом выступает connection->id
+     *
+     * @var int[]
+     */
+    private $connectionsTimeStart = [];
+
+    /**
+     * Хранит в себе статус соединения
+     *
+     * @var int[]
+     */
+    private $connectionStatuses = [];
+
+    /**
+     * @var int[]
+     */
+    private $connectionRelManager = [];
+
+    /**
      * @inheritDoc
      */
-    public function getAll()
+    public function getAll(): array
     {
         return $this->connections;
     }
@@ -30,15 +49,21 @@ class ConnectionStorage implements ConnectionStorageInterface
     /**
      * @inheritDoc
      */
-    public function addConnection(TcpConnection $connection)
+    public function addConnection(TcpConnection $connection, int $managerId)
     {
-        $this->connections[$connection->id] = $connection;
+        $this->connectionRelManager[$connection->id] = $managerId;
+
+        if (false === isset($this->connections[$connection->id])) {
+            $this->connections[$connection->id] = $connection;
+            $this->setConnectionTime($connection);
+            $this->setConnectionStatus($connection, ConnectionStorageInterface::STATUS_ONLINE);
+        }
     }
 
     /**
      * @inheritDoc
      */
-    public function getAllWithout(int $id)
+    public function getAllWithout(int $id): array
     {
         $tmp = $this->connections;
         unset($tmp[$id]);
@@ -56,4 +81,48 @@ class ConnectionStorage implements ConnectionStorageInterface
         }
         return null;
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function getTimeStart(TcpConnection $connection): int
+    {
+        return $this->connectionsTimeStart[$connection->id];
+    }
+
+    /**
+     * @param TcpConnection $connection
+     *
+     * @return int
+     */
+    public function getStatus(TcpConnection $connection): string
+    {
+        return $this->connectionStatuses[$connection->id];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setConnectionStatus(TcpConnection $connection, string $status)
+    {
+        $this->connectionStatuses[$connection->id] = $status;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getManagerId(TcpConnection $connection): int
+    {
+        return $this->connectionRelManager[$connection->id];
+    }
+
+    // region: private methods
+    /**
+     * @param TcpConnection $connection
+     */
+    private function setConnectionTime(TcpConnection $connection)
+    {
+        $this->connectionsTimeStart[$connection->id] = time();
+    }
+    // endregion
 }

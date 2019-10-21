@@ -27,8 +27,15 @@ class Crm implements CrmInterface
      */
     public function isValidToken(int $id, string $token)
     {
-        // TODO: Implement isValidToken() method.
-        return true;
+        $response = $this->client->post('api/WebSocketCallback_checkToken', [
+            'form_params' => [
+                'id' => $id,
+                'token' => $token,
+            ],
+        ]);
+        $data = json_decode($response->getBody()->getContents(), true);
+
+        return (bool) @$data['data']['success'];
     }
 
     /**

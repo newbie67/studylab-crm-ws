@@ -21,6 +21,9 @@ use Workerman\Worker;
  */
 class Application
 {
+    /**
+     * Роутинг
+     */
     const ACTIONS_MAP = [
         'changeManagerStatus' => ChangeManagerStatus::class,
     ];
@@ -116,12 +119,12 @@ class Application
                 return false;
             }
 
-            // добавляем коннекшн в сторадж, если он ещё не добавлен и завязываем на менеджера
-            $storage->getConnectionStorage()->addConnection($connection);
-            $storage->getManagerStorage()->addManagerConnection($parsedRequest->getManagerId(), $connection->id);
-
             // Отлавливаем текущий роут и запускаем метод
             if (array_key_exists($parsedRequest->getAction(), self::ACTIONS_MAP)) {
+                // добавляем коннекшн в сторадж, если он ещё не добавлен и завязываем на менеджера
+                $storage->getConnectionStorage()->addConnection($connection, $parsedRequest->getManagerId());
+                $storage->getManagerStorage()->addManagerConnection($parsedRequest->getManagerId(), $connection);
+
                 $actionClassName = self::ACTIONS_MAP[$parsedRequest->getAction()];
                 /** @var ActionInterface $action */
                 $action = new $actionClassName($connection, $storage, $parsedRequest, $crm->getManagers());

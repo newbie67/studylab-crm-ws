@@ -41,6 +41,9 @@ abstract class AbstractAction implements ActionInterface
         $this->connection = $connection;
         $this->storage = $storage;
         $this->request = $request;
-        $this->managers = $managers;
+
+        foreach ($managers as $manager) {
+            $this->managers[(int)$manager['id']] = $manager;
+        }
     }
 }
