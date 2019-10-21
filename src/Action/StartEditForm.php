@@ -13,6 +13,7 @@ class StartEditForm extends AbstractAction
 {
     /**
      * @inheritDoc
+     * @todo отправлять только тем, кто правит форму
      */
     public function run($data)
     {
@@ -20,16 +21,6 @@ class StartEditForm extends AbstractAction
             return ;
         }
         $model = Model::getInstance($data->model, (int)$data->id);
-
-        $connectionStorage = $this->storage->getConnectionStorage();
-        foreach ($connectionStorage->getAllWithout($this->connection->id) as $connection) {
-            $connection->send(json_encode([
-                'action' => 'startEdit',
-                'model'  => $model->getModelName(),
-                'id'     => $model->getId(),
-                'user'   => $this->prepareUserForResponse($connection),
-            ]));
-        }
 
         $lockedFields = $model->getLockedFields();
         $tmp = [];
@@ -48,6 +39,16 @@ class StartEditForm extends AbstractAction
                 'id'     => $model->getId(),
                 'fields' => $fields,
                 'user'   => $this->prepareUserForResponse($tcpConnection),
+            ]));
+        }
+
+        $connectionStorage = $this->storage->getConnectionStorage();
+        foreach ($connectionStorage->getAllWithout($this->connection->id) as $connection) {
+            $connection->send(json_encode([
+                'action' => 'startEdit',
+                'model'  => $model->getModelName(),
+                'id'     => $model->getId(),
+                'user'   => $this->prepareUserForResponse($connection),
             ]));
         }
     }

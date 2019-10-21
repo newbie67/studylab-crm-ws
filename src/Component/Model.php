@@ -53,7 +53,6 @@ class Model
         return $this->lockedFields;
     }
 
-
     /**
      * @param TcpConnection $connection
      * @param array         $fields
@@ -62,6 +61,16 @@ class Model
     {
         foreach ($fields as $field) {
             $this->lockedFields[$field] = $connection->id;
+        }
+    }
+
+    /**
+     * @param string[] $fields
+     */
+    public function unlockFields(array $fields)
+    {
+        foreach ($fields as $field) {
+            unset($this->lockedFields[$field]);
         }
     }
 

@@ -3,9 +3,11 @@
 namespace app;
 
 use app\Action\ChangeManagerStatus;
+use app\Action\EndEditForm;
 use app\Action\GetManagersStatuses;
 use app\Action\LockField;
 use app\Action\StartEditForm;
+use app\Action\UnLockField;
 use app\Component\Crm;
 use app\Component\RequestParser;
 use app\Domain\ActionInterface;
@@ -32,7 +34,9 @@ class Application
         'changeManagerStatus' => ChangeManagerStatus::class,
         'getManagersStatuses' => GetManagersStatuses::class,
         'startEdit' => StartEditForm::class,
+        'endEdit' => EndEditForm::class,
         'focusFields' => LockField::class,
+        'blurFields' => UnLockField::class,
     ];
 
     /**
