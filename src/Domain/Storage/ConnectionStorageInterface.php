@@ -24,6 +24,13 @@ interface ConnectionStorageInterface
     public function addConnection(TcpConnection $connection, int $managerId);
 
     /**
+     * Удаляет текущий коннек
+     *
+     * @param TcpConnection $connection
+     */
+    public function removeConnection(TcpConnection $connection);
+
+    /**
      * @return TcpConnection[]
      */
     public function getAll(): array;
@@ -67,7 +74,7 @@ interface ConnectionStorageInterface
     /**
      * @param TcpConnection $connection
      *
-     * @return int
+     * @return int|null
      */
     public function getManagerId(TcpConnection $connection): int;
 }

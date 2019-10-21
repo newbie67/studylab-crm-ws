@@ -37,7 +37,7 @@ interface ManagerStorageInterface
     /**
      * @param int $managerId
      *
-     * @return string
+     * @return string|null
      */
     public function getStatus(int $managerId);
 

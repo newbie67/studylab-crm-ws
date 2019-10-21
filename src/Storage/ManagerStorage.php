@@ -68,7 +68,11 @@ class ManagerStorage implements ManagerStorageInterface
      */
     public function getStatus(int $managerId)
     {
-        return $this->statuses[$managerId];
+        if (isset($this->statuses[$managerId])) {
+            return $this->statuses[$managerId];
+        }
+
+        return null;
     }
 
     /**

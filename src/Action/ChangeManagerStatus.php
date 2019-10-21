@@ -25,6 +25,7 @@ class ChangeManagerStatus extends AbstractAction
     {
         $connectionStorage = $this->storage->getConnectionStorage();
         $managerStorage = $this->storage->getManagerStorage();
+        // Если пользователь не является менеджером, отключаем его
         if (false === array_key_exists($this->request->getManagerId(), $this->managers)) {
             return ;
         }

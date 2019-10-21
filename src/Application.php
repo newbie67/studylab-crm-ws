@@ -3,10 +3,12 @@
 namespace app;
 
 use app\Action\ChangeManagerStatus;
+use app\Action\GetManagersStatuses;
 use app\Component\Crm;
 use app\Component\RequestParser;
 use app\Domain\ActionInterface;
 use app\Domain\Component\CrmInterface;
+use app\Domain\Storage\ConnectionStorageInterface;
 use app\Domain\Storage\StorageInterface;
 use app\Storage\Storage;
 use GuzzleHttp\Client;
@@ -26,6 +28,7 @@ class Application
      */
     const ACTIONS_MAP = [
         'changeManagerStatus' => ChangeManagerStatus::class,
+        'getManagersStatuses' => GetManagersStatuses::class,
     ];
 
     /**
@@ -139,9 +142,40 @@ class Application
          *
          * @param TcpConnection $connection
          */
-        $this->server->onClose = function (TcpConnection $connection) use ($logger) {
-            // Прекращаем правки текущего соединения в полях и сообщаем клиентам
+        $this->server->onClose = function (TcpConnection $connection) use ($logger, $storage, $crm) {
+            // Todo: Прекращаем правки текущего соединения в полях и сообщаем клиентам
+
+            $managerId = $storage->getConnectionStorage()->getManagerId($connection);
+            $storage->getConnectionStorage()->removeConnection($connection);
+
             // Если это последний коннект менеджера - говорим всем, что он оффлайн
+            if (null !== $managerId) {
+                $managerInfo = null;
+                foreach ($crm->getManagers() as $item) {
+                    if ((int) $item['id'] === $managerId) {
+                        $managerInfo = $item;
+                        break;
+                    }
+                }
+                if (null !== $managerInfo) {
+                    $otherConnections = $storage->getManagerStorage()->getConnectionsByManagerId($managerId);
+                    if (empty($otherConnections)) {
+                        foreach ($storage->getConnectionStorage()->getAll() as $tcpConnection) {
+                            $tcpConnection->send(json_encode([
+                                'action'   => 'changeManagersStatuses',
+                                'statuses' => [
+                                    $managerId => array_merge(
+                                        $managerInfo,
+                                        ['status' => ConnectionStorageInterface::STATUS_OFFLINE]
+                                    ),
+                                ]
+                            ]));
+                        }
+                    }
+                }
+            }
+
+
             $logger->info('Connection closed. Connection->id: ' . $connection->id);
         };
 
