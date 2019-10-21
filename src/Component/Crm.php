@@ -41,12 +41,12 @@ class Crm implements CrmInterface
     /**
      * @inheritDoc
      *
-     * @todo Можно добавить кеширование активных менеджеров, минут на 10
+     * @todo Можно добавить кеширование активных пользователей, минут на 10
      *       Чтобы не дёргать CRM при каждом запросе
      */
-    public function getManagers()
+    public function getUsers()
     {
-        $response = $this->client->get('api/WebSocketCallback_getManagers');
+        $response = $this->client->get('api/WebSocketCallback_getActiveUsers');
         $data = json_decode($response->getBody()->getContents(), true);
 
         return $data['data'];

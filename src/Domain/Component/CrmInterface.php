@@ -22,5 +22,5 @@ interface CrmInterface
     /**
      * @return array[]
      */
-    public function getManagers();
+    public function getUsers();
 }

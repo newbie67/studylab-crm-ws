@@ -25,6 +25,15 @@ abstract class AbstractAction implements ActionInterface
     protected $request;
 
     /**
+     * Все пользователи
+     *
+     * @var array
+     */
+    protected $users;
+
+    /**
+     * Только менеджеры
+     *
      * @var array
      */
     protected $managers;
@@ -36,14 +45,29 @@ abstract class AbstractAction implements ActionInterface
         TcpConnection $connection,
         StorageInterface $storage,
         ParsedRequest $request,
-        array $managers
+        array $allUsers
     ) {
         $this->connection = $connection;
         $this->storage = $storage;
         $this->request = $request;
 
-        foreach ($managers as $manager) {
-            $this->managers[(int)$manager['id']] = $manager;
+        foreach ($allUsers as $user) {
+            $this->users[(int)$user['id']] = $user;
+            if ($user['role'] === 'manager') {
+                $this->managers[(int)$user['id']] = $user;
+            }
         }
+    }
+
+    /**
+     * @param TcpConnection $connection
+     *
+     * @todo
+     * @return array
+     */
+    protected function prepareUserForResponse(TcpConnection $connection): array
+    {
+        $userId = $this->storage->getConnectionStorage()->getUserId($connection);
+        return $this->users[$userId];
     }
 }

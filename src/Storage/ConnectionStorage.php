@@ -49,9 +49,9 @@ class ConnectionStorage implements ConnectionStorageInterface
     /**
      * @inheritDoc
      */
-    public function addConnection(TcpConnection $connection, int $managerId)
+    public function addConnection(TcpConnection $connection, int $userId)
     {
-        $this->connectionRelManager[$connection->id] = $managerId;
+        $this->connectionRelManager[$connection->id] = $userId;
 
         if (false === array_key_exists($connection->id, $this->connections)) {
             $this->connections[$connection->id] = $connection;
@@ -122,7 +122,7 @@ class ConnectionStorage implements ConnectionStorageInterface
     /**
      * @inheritDoc
      */
-    public function getManagerId(TcpConnection $connection)
+    public function getUserId(TcpConnection $connection)
     {
         if (array_key_exists($connection->id, $this->connectionRelManager)) {
             return $this->connectionRelManager[$connection->id];

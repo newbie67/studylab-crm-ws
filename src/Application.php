@@ -4,6 +4,7 @@ namespace app;
 
 use app\Action\ChangeManagerStatus;
 use app\Action\GetManagersStatuses;
+use app\Action\StartEditForm;
 use app\Component\Crm;
 use app\Component\RequestParser;
 use app\Domain\ActionInterface;
@@ -29,6 +30,7 @@ class Application
     const ACTIONS_MAP = [
         'changeManagerStatus' => ChangeManagerStatus::class,
         'getManagersStatuses' => GetManagersStatuses::class,
+        'startEdit' => StartEditForm::class,
     ];
 
     /**
@@ -130,7 +132,7 @@ class Application
 
                 $actionClassName = self::ACTIONS_MAP[$parsedRequest->getAction()];
                 /** @var ActionInterface $action */
-                $action = new $actionClassName($connection, $storage, $parsedRequest, $crm->getManagers());
+                $action = new $actionClassName($connection, $storage, $parsedRequest, $crm->getUsers());
                 $action->run($parsedRequest->getData());
             } else {
                 $this->logger->error('>>> Undefined action ' . $parsedRequest->getAction());
@@ -145,12 +147,12 @@ class Application
         $this->server->onClose = function (TcpConnection $connection) use ($logger, $storage, $crm) {
             // Todo: Прекращаем правки текущего соединения в полях и сообщаем клиентам
 
-            $managerId = $storage->getConnectionStorage()->getManagerId($connection);
+            $managerId = $storage->getConnectionStorage()->getUserId($connection);
             $storage->getConnectionStorage()->removeConnection($connection);
 
             if (null !== $managerId) {
                 $managerInfo = null;
-                foreach ($crm->getManagers() as $item) {
+                foreach ($crm->getUsers() as $item) {
                     if ((int) $item['id'] === $managerId) {
                         $managerInfo = $item;
                         break;

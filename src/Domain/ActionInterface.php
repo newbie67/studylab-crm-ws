@@ -14,13 +14,13 @@ interface ActionInterface
      * @param TcpConnection    $connection
      * @param StorageInterface $storage
      * @param ParsedRequest    $request
-     * @param array            $managers
+     * @param array            $allUsers
      */
     public function __construct(
         TcpConnection $connection,
         StorageInterface $storage,
         ParsedRequest $request,
-        array $managers
+        array $allUsers
     );
 
     /**

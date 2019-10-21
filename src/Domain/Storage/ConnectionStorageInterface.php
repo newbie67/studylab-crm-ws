@@ -19,9 +19,9 @@ interface ConnectionStorageInterface
      * Добавляет текущий коннек
      *
      * @param TcpConnection $connection
-     * @param int           $managerId
+     * @param int           $userId
      */
-    public function addConnection(TcpConnection $connection, int $managerId);
+    public function addConnection(TcpConnection $connection, int $userId);
 
     /**
      * Удаляет текущий коннек
@@ -76,5 +76,5 @@ interface ConnectionStorageInterface
      *
      * @return int|null
      */
-    public function getManagerId(TcpConnection $connection);
+    public function getUserId(TcpConnection $connection);
 }
