@@ -39,6 +39,7 @@ class ChangeManagerStatus extends AbstractAction
             // Пользователь реально отошёл, только если все его соединения стали away
             $statusAway = true;
             $allConnections = $managerStorage->getConnectionsByManagerId($this->request->getManagerId());
+
             foreach ($allConnections as $connection) {
                 if ($connectionStorage->getStatus($connection) !== ConnectionStorageInterface::STATUS_AWAY) {
                     $statusAway = false;

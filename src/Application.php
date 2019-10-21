@@ -92,7 +92,7 @@ class Application
          * @param TcpConnection $connection
          */
         $this->server->onConnect = function (TcpConnection $connection) use ($logger) {
-            $this->logger->info('New connection. Connection->id: ' . $connection->id);
+            $this->logger->info('>>> New connection. Connection->id: ' . $connection->id);
         };
 
         /**
@@ -109,7 +109,7 @@ class Application
             $requestParser,
             $storage
         ) {
-            $logger->info('Got new message:' . (string)$data);
+            $logger->info('>>> Got new message:' . (string)$data);
 
             // Проверка валидности запроса
             if (false === $requestParser->isValidRequest($data)) {
@@ -133,7 +133,7 @@ class Application
                 $action = new $actionClassName($connection, $storage, $parsedRequest, $crm->getManagers());
                 $action->run($parsedRequest->getData());
             } else {
-                $this->logger->error('Undefined action ' . $parsedRequest->getAction());
+                $this->logger->error('>>> Undefined action ' . $parsedRequest->getAction());
             }
         };
 
@@ -148,7 +148,6 @@ class Application
             $managerId = $storage->getConnectionStorage()->getManagerId($connection);
             $storage->getConnectionStorage()->removeConnection($connection);
 
-            // Если это последний коннект менеджера - говорим всем, что он оффлайн
             if (null !== $managerId) {
                 $managerInfo = null;
                 foreach ($crm->getManagers() as $item) {
@@ -157,6 +156,11 @@ class Application
                         break;
                     }
                 }
+
+                $storage->getManagerStorage()->removeManagerConnection($managerId, $connection);
+                $logger->info('>>> Connection was removed #' . $connection->id);
+
+                // Если это последний коннект менеджера - говорим всем, что он оффлайн
                 if (null !== $managerInfo) {
                     $otherConnections = $storage->getManagerStorage()->getConnectionsByManagerId($managerId);
                     if (empty($otherConnections)) {
@@ -176,7 +180,7 @@ class Application
             }
 
 
-            $logger->info('Connection closed. Connection->id: ' . $connection->id);
+            $logger->info('>>> Connection closed #' . $connection->id);
         };
 
         Worker::runAll();
@@ -190,13 +194,13 @@ class Application
         $logger = $this->logger;
 
         $this->server->onWorkerStart = function (Worker $worker) use ($logger) {
-            $logger->info('Worker started');
+            $logger->info('>>> Worker started');
         };
         $this->server->onWorkerStop = function (Worker $worker) use ($logger) {
-            $logger->info('Worker stopped');
+            $logger->info('>>> Worker stopped');
         };
         $this->server->onWorkerReload = function (Worker $worker) use ($logger) {
-            $logger->info('Worker reloaded');
+            $logger->info('>>> Worker reloaded');
         };
     }
 }

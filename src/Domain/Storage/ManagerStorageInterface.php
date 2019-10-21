@@ -12,12 +12,18 @@ use Workerman\Connection\TcpConnection;
 interface ManagerStorageInterface
 {
     /**
-     * Добавляет текущий коннек
+     * Добавляет текущий коннект
      *
      * @param int           $managerId
      * @param TcpConnection $connection
      */
     public function addManagerConnection(int $managerId, TcpConnection $connection);
+
+    /**
+     * @param int           $managerId
+     * @param TcpConnection $connection
+     */
+    public function removeManagerConnection(int $managerId, TcpConnection $connection);
 
     /**
      * Возвращает список коннекшненов менеджера

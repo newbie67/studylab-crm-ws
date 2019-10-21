@@ -76,5 +76,5 @@ interface ConnectionStorageInterface
      *
      * @return int|null
      */
-    public function getManagerId(TcpConnection $connection): int;
+    public function getManagerId(TcpConnection $connection);
 }

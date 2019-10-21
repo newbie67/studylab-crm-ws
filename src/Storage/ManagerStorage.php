@@ -35,10 +35,18 @@ class ManagerStorage implements ManagerStorageInterface
         if (!isset($this->managerRelConnections[$managerId])) {
             $this->managerRelConnections[$managerId] = [];
         }
-        if (false === array_search($connection->id, $this->managerRelConnections[$managerId], true)) {
+        if (false === array_key_exists($connection->id, $this->managerRelConnections[$managerId])) {
             $this->managerRelConnections[$managerId][$connection->id] = $connection;
             $this->statuses[$managerId] = ConnectionStorageInterface::STATUS_ONLINE;
         }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function removeManagerConnection(int $managerId, TcpConnection $connection)
+    {
+        unset($this->managerRelConnections[$managerId][$connection->id]);
     }
 
     /**

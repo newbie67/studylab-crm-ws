@@ -53,7 +53,7 @@ class ConnectionStorage implements ConnectionStorageInterface
     {
         $this->connectionRelManager[$connection->id] = $managerId;
 
-        if (false === isset($this->connections[$connection->id])) {
+        if (false === array_key_exists($connection->id, $this->connections)) {
             $this->connections[$connection->id] = $connection;
             $this->connectionsTimeStart[$connection->id] = time();
             $this->setConnectionStatus($connection, ConnectionStorageInterface::STATUS_ONLINE);
@@ -65,6 +65,7 @@ class ConnectionStorage implements ConnectionStorageInterface
      */
     public function removeConnection(TcpConnection $connection)
     {
+        unset($this->connections[$connection->id]);
         unset($this->connectionRelManager[$connection->id]);
         unset($this->connectionsTimeStart[$connection->id]);
         unset($this->connectionStatuses[$connection->id]);
@@ -103,7 +104,7 @@ class ConnectionStorage implements ConnectionStorageInterface
     /**
      * @param TcpConnection $connection
      *
-     * @return int
+     * @return string
      */
     public function getStatus(TcpConnection $connection): string
     {
@@ -121,7 +122,7 @@ class ConnectionStorage implements ConnectionStorageInterface
     /**
      * @inheritDoc
      */
-    public function getManagerId(TcpConnection $connection): int
+    public function getManagerId(TcpConnection $connection)
     {
         if (array_key_exists($connection->id, $this->connectionRelManager)) {
             return $this->connectionRelManager[$connection->id];
