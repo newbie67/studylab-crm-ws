@@ -17,7 +17,7 @@ class ParsedRequest
     /**
      * @var int
      */
-    private $managerId;
+    private $userId;
 
     /**
      * @var \stdClass
@@ -29,14 +29,14 @@ class ParsedRequest
      *
      * @param string         $action
      * @param string         $token
-     * @param int            $managerId
+     * @param int            $userId
      * @param \stdClass|null $data
      */
-    public function __construct(string $action, string $token, int $managerId, $data = null)
+    public function __construct(string $action, string $token, int $userId, $data = null)
     {
         $this->action = $action;
         $this->token = $token;
-        $this->managerId = $managerId;
+        $this->userId = $userId;
         $this->data = $data;
     }
 
@@ -67,8 +67,8 @@ class ParsedRequest
     /**
      * @return int
      */
-    public function getManagerId()
+    public function userId()
     {
-        return $this->managerId;
+        return $this->userId;
     }
 }

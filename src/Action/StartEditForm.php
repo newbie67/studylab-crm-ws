@@ -3,7 +3,6 @@
 namespace app\Action;
 
 use app\Component\Model;
-use Workerman\Connection\TcpConnection;
 
 /**
  * Говорит всем, что текущую форму правит менеджер такой то
@@ -31,38 +30,25 @@ class StartEditForm extends AbstractAction
                 'user'   => $this->prepareUserForResponse($connection),
             ]));
         }
-        
-        // отмечаем, что пользователь правит
-       /**
-        // Говорим текущему юзеру, какие поля кто правит
-        if (!empty($this->_currentModel)) {
-            $lockedFields = $this->_currentModel->getLockedFields();
+
+        $lockedFields = $model->getLockedFields();
+        $tmp = [];
+        foreach ($lockedFields as $fieldName => $connectionId) {
+            if (!isset($tmp[$connectionId])) {
+                $tmp[$connectionId] = [];
+            }
+            $tmp[$connectionId][] = $fieldName;
         }
 
-        if (!empty($lockedFields)) {
-            $reverseLockedFields = [];
-            foreach ($lockedFields as $fieldName => $userId) {
-                if (!isset($reverseLockedFields[$userId])) {
-                    $lockedFields[$userId] = [];
-                }
-                $reverseLockedFields[$userId][] = $fieldName;
-            }
-            $responseLockedFields = [
-                'action'      => 'multipleFocusFields',
-                'model'       => $this->_currentModel->getModelName(),
-                'id'          => $this->_currentModel->getId(),
-                'focusFields' => [],
-            ];
-            // "@todo: Говорим текущему юзеру, кто ещё правит поля
-            foreach ($reverseLockedFields as $clientId => $fields) {
-                $responseLockedFields['focusFields'][] = [
-                    'fields' => $fields,
-                    'user'   => $this->_getUserDataForResponse($clientId),
-                ];
-            }
-            $this->_send($connectionId, $responseLockedFields);
+        foreach ($tmp as $connectionId => $fields) {
+            $tcpConnection = $this->storage->getConnectionStorage()->getById($connectionId);
+            $this->connection->send(json_encode([
+                'action' => 'multipleFocusFields',
+                'model'  => $model->getModelName(),
+                'id'     => $model->getId(),
+                'fields' => $fields,
+                'user'   => $this->prepareUserForResponse($tcpConnection),
+            ]));
         }
-
-        */
     }
 }

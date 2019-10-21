@@ -26,7 +26,7 @@ class ChangeManagerStatus extends AbstractAction
         $connectionStorage = $this->storage->getConnectionStorage();
         $managerStorage = $this->storage->getManagerStorage();
         // Если пользователь не является менеджером, отключаем его
-        if (false === array_key_exists($this->request->getManagerId(), $this->managers)) {
+        if (false === array_key_exists($this->request->userId(), $this->managers)) {
             return ;
         }
         if (in_array(
@@ -38,7 +38,7 @@ class ChangeManagerStatus extends AbstractAction
 
             // Пользователь реально отошёл, только если все его соединения стали away
             $statusAway = true;
-            $allConnections = $managerStorage->getConnectionsByManagerId($this->request->getManagerId());
+            $allConnections = $managerStorage->getConnectionsByManagerId($this->request->userId());
 
             foreach ($allConnections as $connection) {
                 if ($connectionStorage->getStatus($connection) !== ConnectionStorageInterface::STATUS_AWAY) {
@@ -48,8 +48,8 @@ class ChangeManagerStatus extends AbstractAction
 
             // Если реальный статус менеджера изменился, сообщаем всем остальным соединениям
             $status = $statusAway ? ConnectionStorageInterface::STATUS_AWAY : ConnectionStorageInterface::STATUS_ONLINE;
-            if ($status !== $managerStorage->getStatus($this->request->getManagerId())) {
-                $managerInfo = $this->managers[$this->request->getManagerId()];
+            if ($status !== $managerStorage->getStatus($this->request->userId())) {
+                $managerInfo = $this->managers[$this->request->userId()];
                 $managerInfo['status'] = $status;
 
                 // Сообщаем всем коннекшенам статус пользователя
@@ -58,7 +58,7 @@ class ChangeManagerStatus extends AbstractAction
                     $connection->send(json_encode([
                         'action'   => 'changeManagersStatuses',
                         'statuses' => [
-                            $this->request->getManagerId() => $managerInfo,
+                            $this->request->userId() => $managerInfo,
                         ]
                     ]));
                 }

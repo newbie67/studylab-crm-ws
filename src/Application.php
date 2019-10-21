@@ -4,6 +4,7 @@ namespace app;
 
 use app\Action\ChangeManagerStatus;
 use app\Action\GetManagersStatuses;
+use app\Action\LockField;
 use app\Action\StartEditForm;
 use app\Component\Crm;
 use app\Component\RequestParser;
@@ -31,6 +32,7 @@ class Application
         'changeManagerStatus' => ChangeManagerStatus::class,
         'getManagersStatuses' => GetManagersStatuses::class,
         'startEdit' => StartEditForm::class,
+        'focusFields' => LockField::class,
     ];
 
     /**
@@ -120,15 +122,15 @@ class Application
 
             $parsedRequest = $requestParser->getParsedRequest($data);
             // Если токен передан верно
-            if (false === $crm->isValidToken($parsedRequest->getManagerId(), $parsedRequest->getToken())) {
+            if (false === $crm->isValidToken($parsedRequest->userId(), $parsedRequest->getToken())) {
                 return false;
             }
 
             // Отлавливаем текущий роут и запускаем метод
             if (array_key_exists($parsedRequest->getAction(), self::ACTIONS_MAP)) {
                 // добавляем коннекшн в сторадж, если он ещё не добавлен и завязываем на менеджера
-                $storage->getConnectionStorage()->addConnection($connection, $parsedRequest->getManagerId());
-                $storage->getManagerStorage()->addManagerConnection($parsedRequest->getManagerId(), $connection);
+                $storage->getConnectionStorage()->addConnection($connection, $parsedRequest->userId());
+                $storage->getManagerStorage()->addManagerConnection($parsedRequest->userId(), $connection);
 
                 $actionClassName = self::ACTIONS_MAP[$parsedRequest->getAction()];
                 /** @var ActionInterface $action */

@@ -62,7 +62,6 @@ abstract class AbstractAction implements ActionInterface
     /**
      * @param TcpConnection $connection
      *
-     * @todo
      * @return array
      */
     protected function prepareUserForResponse(TcpConnection $connection): array

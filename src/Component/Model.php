@@ -2,6 +2,8 @@
 
 namespace app\Component;
 
+use Workerman\Connection\TcpConnection;
+
 class Model
 {
     /**
@@ -18,6 +20,11 @@ class Model
      * @var int
      */
     private $id;
+
+    /**
+     * @var array[]
+     */
+    private $lockedFields = [];
 
     /**
      * @param string $modelName
@@ -43,7 +50,19 @@ class Model
      */
     public function getLockedFields(): array
     {
-        return [];
+        return $this->lockedFields;
+    }
+
+
+    /**
+     * @param TcpConnection $connection
+     * @param array         $fields
+     */
+    public function lockFields(TcpConnection $connection, array $fields)
+    {
+        foreach ($fields as $field) {
+            $this->lockedFields[$field] = $connection->id;
+        }
     }
 
     /**
