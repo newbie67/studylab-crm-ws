@@ -1,8 +1,8 @@
 <?php
 
-namespace app\Action;
+namespace app2\Action;
 
-use app\Component\Model;
+use app2\Component\Model;
 
 /**
  * Говорит всем, что текущую форму правит менеджер такой то
@@ -15,12 +15,15 @@ class StartEditForm extends AbstractAction
      * @inheritDoc
      * @todo отправлять только тем, кто правит форму
      */
-    public function run($data)
+    public function run($data = null)
     {
+        $connectionStorage = $this->storage->getConnectionStorage();
+
         if (empty($data->model) || empty($data->id)) {
             return ;
         }
         $model = Model::getInstance($data->model, (int)$data->id);
+        $connectionStorage->setEditedForms($this->connection, $model);
 
         $lockedFields = $model->getLockedFields();
         $tmp = [];
@@ -31,8 +34,9 @@ class StartEditForm extends AbstractAction
             $tmp[$connectionId][] = $fieldName;
         }
 
+
         foreach ($tmp as $connectionId => $fields) {
-            $tcpConnection = $this->storage->getConnectionStorage()->getById($connectionId);
+            $tcpConnection = $connectionStorage->getById($connectionId);
             $this->connection->send(json_encode([
                 'action' => 'multipleFocusFields',
                 'model'  => $model->getModelName(),
@@ -42,13 +46,12 @@ class StartEditForm extends AbstractAction
             ]));
         }
 
-        $connectionStorage = $this->storage->getConnectionStorage();
         foreach ($connectionStorage->getAllWithout($this->connection->id) as $connection) {
             $connection->send(json_encode([
                 'action' => 'startEdit',
                 'model'  => $model->getModelName(),
                 'id'     => $model->getId(),
-                'user'   => $this->prepareUserForResponse($connection),
+                'user'   => $this->prepareUserForResponse($this->connection),
             ]));
         }
     }

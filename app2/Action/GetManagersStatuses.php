@@ -1,8 +1,8 @@
 <?php
 
-namespace app\Action;
+namespace app2\Action;
 
-use app\Domain\Storage\ConnectionStorageInterface;
+use app2\Domain\Storage\ConnectionStorageInterface;
 
 /**
  * Возвращает список мееджеров и их статусы
@@ -14,7 +14,7 @@ class GetManagersStatuses extends AbstractAction
     /**
      * @inheritDoc
      */
-    public function run($data)
+    public function run($data = null)
     {
         $managerStorage = $this->storage->getManagerStorage();
 

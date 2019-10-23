@@ -1,8 +1,8 @@
 <?php
 
-namespace app\Action;
+namespace app2\Action;
 
-use app\Component\Model;
+use app2\Component\Model;
 
 /**
  * Событие разблокировки поля
@@ -14,14 +14,14 @@ class UnLockField extends AbstractAction
     /**
      * @inheritDoc
      */
-    public function run($data)
+    public function run($data = null)
     {
         if (empty($data->model) || empty($data->id) || empty($data->fields)) {
             return ;
         }
 
         $model = Model::getInstance($data->model, (int)$data->id);
-        $model->unlockFields($data->fields);
+        $model->unlockFields((array) $data->fields);
 
         $connectionStorage = $this->storage->getConnectionStorage();
         foreach ($connectionStorage->getAllWithout($this->connection->id) as $connection) {
@@ -30,7 +30,7 @@ class UnLockField extends AbstractAction
                 'model'  => $model->getModelName(),
                 'id'     => $model->getId(),
                 'fields' => $data->fields,
-                'user'   => $this->prepareUserForResponse($connection),
+                'user'   => $this->prepareUserForResponse($this->connection),
             ]));
         }
     }

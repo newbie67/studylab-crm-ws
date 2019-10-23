@@ -1,80 +1,34 @@
 <?php
 
-namespace app\Domain\Storage;
+namespace App\Domain\Storage;
 
-use Workerman\Connection\TcpConnection;
+use App\Domain\Model\ConnectionInterface;
 
-/**
- * Interface ConnectionStorageInterface
- *
- * @package app\Domain\Storage
- */
 interface ConnectionStorageInterface
 {
-    const STATUS_ONLINE = 'online';
-    const STATUS_AWAY = 'away';
-    const STATUS_OFFLINE = 'offline';
-
     /**
-     * Добавляет текущий коннек
+     * @param ConnectionInterface $connection
      *
-     * @param TcpConnection $connection
-     * @param int           $userId
+     * @return mixed
      */
-    public function addConnection(TcpConnection $connection, int $userId);
+    public function addConnection(ConnectionInterface $connection);
 
     /**
-     * Удаляет текущий коннек
+     * @param ConnectionInterface $connection
      *
-     * @param TcpConnection $connection
+     * @return mixed
      */
-    public function removeConnection(TcpConnection $connection);
+    public function removeConnection(ConnectionInterface $connection);
 
     /**
-     * @return TcpConnection[]
+     * @return ConnectionInterface[]
      */
     public function getAll(): array;
 
     /**
-     * @param int $id
+     * @param ConnectionInterface $connection
      *
-     * @return TcpConnection[]
+     * @return ConnectionInterface[]
      */
-    public function getAllWithout(int $id): array;
-
-    /**
-     * Возвращает коннект по его ID
-     *
-     * @param int $id
-     *
-     * @return TcpConnection|null
-     */
-    public function getById(int $id);
-
-    /**
-     * @param TcpConnection $connection
-     *
-     * @return int
-     */
-    public function getTimeStart(TcpConnection $connection): int;
-
-    /**
-     * @param TcpConnection $connection
-     *
-     * @return string
-     */
-    public function getStatus(TcpConnection $connection): string;
-
-    /**
-     * @param TcpConnection $connection
-     * @param string        $status
-     */
-    public function setConnectionStatus(TcpConnection $connection, string $status);
-
-    /**
-     * @param TcpConnection $connection
-     *
-     * @return int|null
-     */
-    public function getUserId(TcpConnection $connection);
+    public function getAllWithout(ConnectionInterface $connection): array;
 }

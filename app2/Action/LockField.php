@@ -1,8 +1,8 @@
 <?php
 
-namespace app\Action;
+namespace app2\Action;
 
-use app\Component\Model;
+use app2\Component\Model;
 
 /**
  * Событие блокировки поля или списка полей пользователем
@@ -15,13 +15,14 @@ class LockField extends AbstractAction
      * @inheritDoc
      * @todo отправлять нужно не всем, а только тем, кто правит форму.
      */
-    public function run($data)
+    public function run($data = null)
     {
         if (empty($data->model) || empty($data->id) || empty($data->fields)) {
             return ;
         }
 
         $model = Model::getInstance($data->model, (int)$data->id);
+        $this->storage->getConnectionStorage()->setEditedForms($this->connection, $model);
         $model->lockFields($this->connection, $data->fields);
 
         $connectionStorage = $this->storage->getConnectionStorage();
@@ -31,7 +32,7 @@ class LockField extends AbstractAction
                 'model'  => $model->getModelName(),
                 'id'     => $model->getId(),
                 'fields' => $data->fields,
-                'user'   => $this->prepareUserForResponse($connection),
+                'user'   => $this->prepareUserForResponse($this->connection),
             ]));
         }
     }

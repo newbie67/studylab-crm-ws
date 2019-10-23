@@ -1,8 +1,8 @@
 <?php
 
-namespace app\Action;
+namespace app2\Action;
 
-use app\Component\Model;
+use app2\Component\Model;
 
 /**
  * Говорит всем, что текущую форму перестал править менеджер
@@ -14,7 +14,7 @@ class EndEditForm extends AbstractAction
     /**
      * @inheritDoc
      */
-    public function run($data)
+    public function run($data = null)
     {
         if (empty($data->model) || empty($data->id)) {
             return ;

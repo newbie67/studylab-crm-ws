@@ -1,10 +1,10 @@
 <?php
 
-namespace app\Action;
+namespace app2\Action;
 
-use app\Component\ParsedRequest;
-use app\Domain\ActionInterface;
-use app\Domain\Storage\StorageInterface;
+use app2\Component\ParsedRequest;
+use app2\Domain\ActionInterface;
+use app2\Domain\Storage\StorageInterface;
 use Workerman\Connection\TcpConnection;
 
 abstract class AbstractAction implements ActionInterface
@@ -20,7 +20,8 @@ abstract class AbstractAction implements ActionInterface
     protected $storage;
 
     /**
-     * @var ParsedRequest
+     * При закрытии соединения экшн может отсутствовать
+     * @var ParsedRequest|null
      */
     protected $request;
 
@@ -44,19 +45,21 @@ abstract class AbstractAction implements ActionInterface
     public function __construct(
         TcpConnection $connection,
         StorageInterface $storage,
-        ParsedRequest $request,
-        array $allUsers
+        ParsedRequest $request = null,
+        array $allUsers = []
     ) {
         $this->connection = $connection;
         $this->storage = $storage;
-        $this->request = $request;
-
+        if (null !== $request) {
+            $this->request = $request;
+        }
         foreach ($allUsers as $user) {
             $this->users[(int)$user['id']] = $user;
             if ($user['role'] === 'manager') {
                 $this->managers[(int)$user['id']] = $user;
             }
         }
+
     }
 
     /**

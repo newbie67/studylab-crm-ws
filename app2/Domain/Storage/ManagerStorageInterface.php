@@ -1,6 +1,6 @@
 <?php
 
-namespace app\Domain\Storage;
+namespace app2\Domain\Storage;
 
 use Workerman\Connection\TcpConnection;
 

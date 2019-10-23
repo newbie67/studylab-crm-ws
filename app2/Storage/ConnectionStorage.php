@@ -1,8 +1,9 @@
 <?php
 
-namespace app\Storage;
+namespace app2\Storage;
 
-use app\Domain\Storage\ConnectionStorageInterface;
+use app2\Component\Model;
+use app2\Domain\Storage\ConnectionStorageInterface;
 use Workerman\Connection\TcpConnection;
 
 /**
@@ -37,6 +38,11 @@ class ConnectionStorage implements ConnectionStorageInterface
      * @var int[]
      */
     private $connectionRelManager = [];
+
+    /**
+     * @var Model[][]
+     */
+    private $connectionRelModels = [];
 
     /**
      * @inheritDoc
@@ -128,5 +134,31 @@ class ConnectionStorage implements ConnectionStorageInterface
             return $this->connectionRelManager[$connection->id];
         }
         return null;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setEditedForms(TcpConnection $connection, Model $model)
+    {
+        if (false === array_key_exists($connection->id, $this->connectionRelModels)) {
+            $this->connectionRelModels[$connection->id] = [];
+        }
+
+        $key = $model->getModelName() . '|' . $model->getId();
+        if (false === array_key_exists($key, $this->connectionRelModels[$connection->id])) {
+            $this->connectionRelModels[$connection->id][$key] = $model;
+        }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getEditedForms(TcpConnection $connection): array
+    {
+        if (false === array_key_exists($connection->id, $this->connectionRelModels)) {
+            return [];
+        }
+        return $this->connectionRelModels[$connection->id];
     }
 }

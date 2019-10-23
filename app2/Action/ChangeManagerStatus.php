@@ -1,8 +1,8 @@
 <?php
 
-namespace app\Action;
+namespace app2\Action;
 
-use app\Domain\Storage\ConnectionStorageInterface;
+use app2\Domain\Storage\ConnectionStorageInterface;
 
 /**
  * Изменение статуса менеджера.
@@ -21,7 +21,7 @@ class ChangeManagerStatus extends AbstractAction
     /**
      * @inheritDoc
      */
-    public function run($data)
+    public function run($data = null)
     {
         $connectionStorage = $this->storage->getConnectionStorage();
         $managerStorage = $this->storage->getManagerStorage();
@@ -48,20 +48,20 @@ class ChangeManagerStatus extends AbstractAction
 
             // Если реальный статус менеджера изменился, сообщаем всем остальным соединениям
             $status = $statusAway ? ConnectionStorageInterface::STATUS_AWAY : ConnectionStorageInterface::STATUS_ONLINE;
-            if ($status !== $managerStorage->getStatus($this->request->userId())) {
-                $managerInfo = $this->managers[$this->request->userId()];
-                $managerInfo['status'] = $status;
 
-                // Сообщаем всем коннекшенам статус пользователя
-                // Todo Проверить как принимает значения фронт, может быть нужно посылать ВСЕМ, ВКЛЮЧАЯ себя
-                foreach ($connectionStorage->getAllWithout($this->connection->id) as $connection) {
-                    $connection->send(json_encode([
-                        'action'   => 'changeManagersStatuses',
-                        'statuses' => [
-                            $this->request->userId() => $managerInfo,
-                        ]
-                    ]));
-                }
+            $managerInfo = $this->managers[$this->request->userId()];
+            $managerInfo['status'] = $status;
+
+            // Сообщаем всем коннекшенам статус пользователя
+            // Todo Проверить как принимает значения фронт, может быть нужно посылать ВСЕМ, ВКЛЮЧАЯ себя
+            foreach ($connectionStorage->getAllWithout($this->connection->id) as $connection) {
+                echo '>>>>>>>>>>>> ConnectionId: ' . $connection->id;
+                $connection->send(json_encode([
+                    'action'   => 'changeManagersStatuses',
+                    'statuses' => [
+                        $this->request->userId() => $managerInfo,
+                    ]
+                ]));
             }
         }
     }

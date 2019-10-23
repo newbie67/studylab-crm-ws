@@ -1,6 +1,6 @@
 <?php
 
-namespace app\Component;
+namespace app2\Component;
 
 use Workerman\Connection\TcpConnection;
 

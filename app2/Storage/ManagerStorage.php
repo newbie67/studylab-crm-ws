@@ -1,9 +1,9 @@
 <?php
 
-namespace app\Storage;
+namespace app2\Storage;
 
-use app\Domain\Storage\ConnectionStorageInterface;
-use app\Domain\Storage\ManagerStorageInterface;
+use app2\Domain\Storage\ConnectionStorageInterface;
+use app2\Domain\Storage\ManagerStorageInterface;
 use Workerman\Connection\TcpConnection;
 
 /**
