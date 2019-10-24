@@ -3,6 +3,11 @@ WebSocket сервер для бекенда studylab.
 
 Конфигурация сервера находится в файле `configs/config.php`, там вы можете определить адрес бекенда и слушаемый порт
 
+Установите библиотеки:
+```bash
+composer install
+```
+
 Запуск демона в фоне: 
 ```bash
 php server.php start -d
