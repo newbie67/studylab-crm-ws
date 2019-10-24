@@ -2,6 +2,7 @@
 
 namespace App\Storage;
 
+use App\Domain\Model\ModelInterface;
 use App\Domain\Storage\ConnectionStorageInterface;
 use Workerman\Connection\TcpConnection;
 
@@ -13,6 +14,11 @@ class ConnectionStorage implements ConnectionStorageInterface
     private $connections = [];
 
     /**
+     * @var ModelInterface[][]
+     */
+    private $models = [];
+
+    /**
      * @inheritDoc
      */
     public function addConnection(TcpConnection $connection)
@@ -20,6 +26,30 @@ class ConnectionStorage implements ConnectionStorageInterface
         if (false === array_key_exists($connection->id, $this->connections)) {
             $this->connections[$connection->id] = $connection;
         }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function addEditedModel(TcpConnection $connection, ModelInterface $model)
+    {
+        if (false === array_key_exists($connection->id, $this->models))  {
+            $this->models[$connection->id] = [];
+        }
+
+        $key = $model->getId() . '|' . $model->getName();
+        $this->models[$connection->id][$key] = $model;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getEditedModels(TcpConnection $connection): array 
+    {
+        if (array_key_exists($connection->id, $this->models))  {
+            return $this->models[$connection->id];
+        }
+        return [];
     }
 
     /**

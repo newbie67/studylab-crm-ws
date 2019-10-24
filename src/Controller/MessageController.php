@@ -196,6 +196,7 @@ class MessageController extends AbstractController
         }
 
         $model = Model::getInstance((int)$data->data->id, $data->data->model);
+        $this->connectionStorage->addEditedModel($currentConnection, $model);
         $model->addEditBy($currentConnection);
 
         foreach ($data->data->fields as $field) {

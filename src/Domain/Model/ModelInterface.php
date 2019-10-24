@@ -52,6 +52,11 @@ interface ModelInterface
     public function getField(string $fieldName);
 
     /**
+     * @return FieldInterface[]
+     */
+    public function getFields();
+
+    /**
      * @param string $fieldName
      */
     public function unlockField(string $fieldName);

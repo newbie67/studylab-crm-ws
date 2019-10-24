@@ -105,6 +105,14 @@ class Model implements ModelInterface
     /**
      * @inheritDoc
      */
+    public function getFields(): array
+    {
+        return $this->fields;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function unlockField(string $fieldName)
     {
         unset($this->fields[$fieldName]);
