@@ -3,7 +3,8 @@
 namespace App;
 
 use App\Controller\CloseController;
-use App\Controller\NewMessageController;
+use App\Controller\MessageController;
+use App\Service\RequestParser;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use Workerman\Connection\TcpConnection;
@@ -75,8 +76,11 @@ class Application
         $this->logger->debug('New message from #' . $connection->id);
         $this->logger->debug('Message: ' . $message);
 
-        $closeController = $this->container->get(NewMessageController::class);
-        $closeController->run($connection);
+        $messageController = $this->container->get(MessageController::class);
+        $data = $this->container->get(RequestParser::class)->parse($message);
+        if (false !== $data && !empty($data) && $messageController->allowed($data)) {
+            $messageController->run($connection, $data);
+        }
     }
 
     /**

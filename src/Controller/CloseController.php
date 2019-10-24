@@ -3,9 +3,11 @@
 namespace App\Controller;
 
 use App\Domain\Storage\ConnectionStorageInterface;
-use App\Service\ClientNotifierHelper;
+use App\Domain\Storage\OnlineManagerStorageInterface;
+use App\Service\ClientNotifier;
 use Psr\Log\LoggerInterface;
 use Workerman\Connection\TcpConnection;
+use stdClass;
 
 class CloseController extends AbstractController
 {
@@ -20,16 +22,25 @@ class CloseController extends AbstractController
     private $logger;
 
     /**
-     * @var ClientNotifierHelper
+     * @var ClientNotifier
      */
-    private $clientNotifierHelper;
+    private $clientNotifier;
+
+    /**
+     * @var OnlineManagerStorageInterface
+     */
+    private $onlineManagerStorage;
 
     public function __construct(
         LoggerInterface $logger,
         ConnectionStorageInterface $connectionStorage,
-        ClientNotifierHelper $clientNotifierHelper
+        ClientNotifier $clientNotifier,
+        OnlineManagerStorageInterface $onlineManagerStorage
     ) {
-
+        $this->logger = $logger;
+        $this->connectionStorage = $connectionStorage;
+        $this->clientNotifier = $clientNotifier;
+        $this->onlineManagerStorage = $onlineManagerStorage;
     }
 
     /**
@@ -37,8 +48,12 @@ class CloseController extends AbstractController
      *
      * @param null $data
      */
-    public function run(TcpConnection $currentConnection, string $data = null)
+    public function run(TcpConnection $currentConnection, stdClass $data = null)
     {
+        $this->connectionStorage->removeConnection($currentConnection);
+        $this->onlineManagerStorage->setOffline($currentConnection);
+
+        /*
         $connection = $this->connectionStorage->findOne($currentConnection);
         $models = $connection->getEditedModels();
         foreach ($models as $model) {
@@ -54,8 +69,9 @@ class CloseController extends AbstractController
                 ['body' => serialize($unlockedFields)]
             );
 
-            $this->clientNotifierHelper->unlockFields($currentConnection, $model, $unlockedFields);
+            $this->clientNotifier->unlockFields($currentConnection, $model, $unlockedFields);
         }
+
 
 
         /**
@@ -96,6 +112,5 @@ class CloseController extends AbstractController
         }
          */
 
-        $this->connectionStorage->removeConnection($currentConnection);
     }
 }

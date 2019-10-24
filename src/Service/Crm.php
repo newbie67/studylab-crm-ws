@@ -63,7 +63,6 @@ class Crm implements CrmInterface
      */
     public function isValidToken(int $managerId, string $token): bool
     {
-        return true;// todo ОБЯЗАТЕЛЬНО ПОПРАВИТЬ
         $response = $this->client->post($this->connectionString . 'api/WebSocketCallback_checkToken', [
             'form_params' => [
                 'id' => $managerId,
@@ -148,13 +147,13 @@ class Crm implements CrmInterface
                 false === is_array($data)
                 || json_last_error() !== JSON_ERROR_NONE
             ) {
-                $this->logger->error('CRM returned bad response: ', ['body' => $responseString]);
+                $this->logger->critical('CRM returned bad response: ', ['body' => $responseString]);
                 return [];
             }
 
             return $data;
         } catch (GuzzleException $e) {
-            $this->logger->error($e->getMessage(), ['body' => $e->getTraceAsString()]);
+            $this->logger->critical($e->getMessage(), ['body' => $e->getTraceAsString()]);
         }
 
         return [];

@@ -12,6 +12,22 @@ use Workerman\Connection\TcpConnection;
 interface ConnectionInterface
 {
     /**
+     * @param TcpConnection $connection
+     *
+     * @return ConnectionInterface
+     */
+    public static function getInstance(TcpConnection $connection): ConnectionInterface;
+
+    /**
+     * @return TcpConnection
+     */
+    public function getTcpConnection(): TcpConnection;
+
+
+
+
+
+    /**
      * @return ModelInterface[]
      */
     public function getEditedModels(): array;
