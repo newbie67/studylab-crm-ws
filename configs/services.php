@@ -1,13 +1,13 @@
 <?php
 
-use App\Domain\Model\ConnectionInterface;
 use App\Domain\Service\CrmInterface;
 use App\Domain\Storage\ConnectionStorageInterface;
 use App\Domain\Storage\OnlineManagerStorageInterface;
-use App\Model\Connection;
+use App\Domain\Storage\UserRelConnectionStorageInterface;
 use App\Service\Crm;
 use App\Storage\ConnectionStorage;
 use App\Storage\OnlineManagerStorage;
+use App\Storage\UserRelConnectionStorage;
 use Psr\Log\LoggerInterface;
 use function DI\autowire;
 
@@ -25,5 +25,5 @@ return [
     ,
     OnlineManagerStorageInterface::class => autowire(OnlineManagerStorage::class),
     ConnectionStorageInterface::class => autowire(ConnectionStorage::class),
-//    ConnectionInterface::class => autowire(Connection::class),
+    UserRelConnectionStorageInterface::class => autowire(UserRelConnectionStorage::class),
 ];

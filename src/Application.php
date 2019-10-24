@@ -13,7 +13,7 @@ use Workerman\Worker;
 /**
  * Class Application
  *
- * @package app
+ * @package App
  */
 class Application
 {
@@ -78,7 +78,7 @@ class Application
 
         $messageController = $this->container->get(MessageController::class);
         $data = $this->container->get(RequestParser::class)->parse($message);
-        if (false !== $data && !empty($data) && $messageController->allowed($data)) {
+        if (false !== $data && !empty($data) && $messageController->isAllowed($data)) {
             $messageController->run($connection, $data);
         }
     }

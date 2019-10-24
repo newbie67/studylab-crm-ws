@@ -1,16 +1,11 @@
 <?php
 
-namespace app\Domain\Model;
+namespace App\Domain\Model;
 
 use Workerman\Connection\TcpConnection;
 
 interface FieldInterface
 {
-    public function getName(): string;
-    public function getValue(): string;
-    public function lock();
-    public function unlock();
-
     /**
      * @param TcpConnection $connection
      *

@@ -5,6 +5,8 @@ namespace App\Controller;
 use App\Domain\Service\CrmInterface;
 use App\Domain\Storage\ConnectionStorageInterface;
 use App\Domain\Storage\OnlineManagerStorageInterface;
+use App\Domain\Storage\UserRelConnectionStorageInterface;
+use App\Model\Model;
 use App\Service\ClientNotifier;
 use Psr\Log\LoggerInterface;
 use Workerman\Connection\TcpConnection;
@@ -19,6 +21,10 @@ class MessageController extends AbstractController
     private $actionMap = [
         'changeManagerStatus' => 'changeCurrentStatusAction',
         'getManagersStatuses' => 'getManagerStatusesAction',
+        'startEdit' => 'startEditFormAction',
+        'endEdit' => 'endEditFormAction',
+        'focusFields' => 'lockFieldsAction',
+        'blurFields' => 'unlockFieldsAction',
     ];
 
     /**
@@ -47,26 +53,34 @@ class MessageController extends AbstractController
     private $connectionStorage;
 
     /**
+     * @var UserRelConnectionStorageInterface
+     */
+    private $userRelConnectionStorage;
+
+    /**
      * MessageController constructor.
      *
-     * @param LoggerInterface               $logger
-     * @param CrmInterface                  $crm
-     * @param OnlineManagerStorageInterface $onlineManagerStorage
-     * @param ClientNotifier                $clientNotifier
-     * @param ConnectionStorageInterface    $connectionStorage
+     * @param LoggerInterface                   $logger
+     * @param CrmInterface                      $crm
+     * @param OnlineManagerStorageInterface     $onlineManagerStorage
+     * @param ClientNotifier                    $clientNotifier
+     * @param ConnectionStorageInterface        $connectionStorage
+     * @param UserRelConnectionStorageInterface $userRelConnectionStorage
      */
     public function __construct(
         LoggerInterface $logger,
         CrmInterface $crm,
         OnlineManagerStorageInterface $onlineManagerStorage,
         ClientNotifier $clientNotifier,
-        ConnectionStorageInterface $connectionStorage
+        ConnectionStorageInterface $connectionStorage,
+        UserRelConnectionStorageInterface $userRelConnectionStorage
     ) {
         $this->crm = $crm;
         $this->logger = $logger;
         $this->onlineManagerStorage = $onlineManagerStorage;
         $this->clientNotifier = $clientNotifier;
         $this->connectionStorage = $connectionStorage;
+        $this->userRelConnectionStorage = $userRelConnectionStorage;
     }
 
     /**
@@ -74,7 +88,7 @@ class MessageController extends AbstractController
      *
      * @return bool
      */
-    public function allowed(stdClass $data): bool
+    public function isAllowed(stdClass $data): bool
     {
         if (empty($data->id) || empty($data->token) || empty($data->action)) {
             $this->logger->critical('Frontend send not enough data: ', ['body' => json_encode($data)]);
@@ -100,6 +114,7 @@ class MessageController extends AbstractController
     public function run(TcpConnection $currentConnection, stdClass $data = null)
     {
         $this->connectionStorage->addConnection($currentConnection);
+        $this->userRelConnectionStorage->addRelation($currentConnection->id, (int)$data->id);
         $action = $this->actionMap[$data->action];
         $this->{$action}($currentConnection, $data);
     }
@@ -140,5 +155,87 @@ class MessageController extends AbstractController
             $managers[$managerId]['status'] = $this->onlineManagerStorage->getManagerStatus($managerId);
         }
         $this->clientNotifier->sendManagersStatuses($currentConnection, $managers);
+    }
+
+    /**
+     * @todo Этот экшн пока бесполезен
+     */
+    protected function startEditFormAction(TcpConnection $currentConnection, stdClass $data)
+    {
+    }
+
+    /**
+     * @todo Этот экшн пока бесполезен
+     */
+    protected function endEditFormAction(TcpConnection $currentConnection, stdClass $data)
+    {
+    }
+
+    /**
+     *  {
+     *      "token":"...",
+     *      "id":"5",
+     *      "action":"focusFields",
+     *      "data":{
+     *          "model":"Contacts",
+     *          "id":"36004",
+     *          "fields":[
+     *              "last_name",
+     *              "last_name_en"
+     *          ]
+     *      }
+     *  }
+     * @param TcpConnection $currentConnection
+     * @param stdClass      $data
+     */
+    protected function lockFieldsAction(TcpConnection $currentConnection, stdClass $data)
+    {
+        if (empty($data->data->model) || empty($data->data->id) || empty($data->data->fields)) {
+            $this->logger->warning('Incorrect incoming data ' . json_encode($data));
+            return ;
+        }
+
+        $model = Model::getInstance((int)$data->data->id, $data->data->model);
+        $model->addEditBy($currentConnection);
+
+        foreach ($data->data->fields as $field) {
+            $model->lockField($currentConnection, $field);
+        }
+        $this->logger->debug('Lock fields: ' . json_encode((array)$data->data->fields));
+        $this->clientNotifier->lockFields($currentConnection, $model, (array)$data->data->fields);
+    }
+
+    /**
+     *  {
+     *      "token":"...",
+     *      "id":"5",
+     *      "action":"blurFields",
+     *      "data":{
+     *          "model":"Contacts",
+     *          "id":"36004",
+     *          "fields":{
+     *              "last_name":"12312312312 12312312 3123 1233 123 123 12",
+     *              "last_name_en":"12312312312 12312312 3123 1233 123 123 12"
+     *          }
+     *      }
+     *  }
+     * @param TcpConnection $currentConnection
+     * @param stdClass      $data
+     */
+    protected function unlockFieldsAction(TcpConnection $currentConnection, stdClass $data)
+    {
+        if (empty($data->data->model) || empty($data->data->id) || empty($data->data->fields)) {
+            $this->logger->warning('Incorrect incoming data ' . json_encode($data));
+            return ;
+        }
+
+        $model = Model::getInstance((int)$data->data->id, $data->data->model);
+        $model->addEditBy($currentConnection);
+
+        foreach ($data->data->fields as $fieldName => $fieldValue) {
+            $model->unlockField($fieldName);
+        }
+
+        $this->clientNotifier->unlockFields($currentConnection, $model, (array)$data->data->fields);
     }
 }

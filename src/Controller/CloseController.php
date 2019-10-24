@@ -53,6 +53,8 @@ class CloseController extends AbstractController
         $this->connectionStorage->removeConnection($currentConnection);
         $this->onlineManagerStorage->setOffline($currentConnection);
 
+
+        // Ищем все коннекты
         /*
         $connection = $this->connectionStorage->findOne($currentConnection);
         $models = $connection->getEditedModels();
@@ -71,6 +73,7 @@ class CloseController extends AbstractController
 
             $this->clientNotifier->unlockFields($currentConnection, $model, $unlockedFields);
         }
+
 
 
 
