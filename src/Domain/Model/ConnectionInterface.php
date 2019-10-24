@@ -4,11 +4,15 @@ namespace App\Domain\Model;
 
 use Workerman\Connection\TcpConnection;
 
+/**
+ * Хранит всю нужную информацию об одном соединении
+ *
+ * @package App\Domain\Model
+ */
 interface ConnectionInterface
 {
     /**
-     * @param TcpConnection $tcpConnection
-     * @param int           $userId
+     * @return ModelInterface[]
      */
-    public function __construct(TcpConnection $tcpConnection, int $userId);
+    public function getEditedModels(): array;
 }

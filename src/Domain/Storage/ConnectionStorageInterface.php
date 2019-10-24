@@ -3,32 +3,38 @@
 namespace App\Domain\Storage;
 
 use App\Domain\Model\ConnectionInterface;
+use Workerman\Connection\TcpConnection;
 
 interface ConnectionStorageInterface
 {
     /**
-     * @param ConnectionInterface $connection
+     * @param TcpConnection $connection
      *
      * @return mixed
      */
-    public function addConnection(ConnectionInterface $connection);
+    public function addConnection(TcpConnection $connection);
 
     /**
-     * @param ConnectionInterface $connection
+     * @param TcpConnection $connection
+     */
+    public function removeConnection(TcpConnection $connection);
+
+    /**
+     * @param TcpConnection $connection
      *
-     * @return mixed
+     * @return ConnectionInterface
      */
-    public function removeConnection(ConnectionInterface $connection);
+    public function findOne(TcpConnection $connection): ConnectionInterface;
 
     /**
-     * @return ConnectionInterface[]
+     * @return TcpConnection[]
      */
-    public function getAll(): array;
+    public function findAll(): array;
 
     /**
-     * @param ConnectionInterface $connection
+     * @param TcpConnection $connection
      *
-     * @return ConnectionInterface[]
+     * @return TcpConnection[]
      */
-    public function getAllWithout(ConnectionInterface $connection): array;
+    public function findAllWithout(TcpConnection $connection): array;
 }

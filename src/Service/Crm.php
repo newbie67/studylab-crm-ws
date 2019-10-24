@@ -42,6 +42,12 @@ class Crm implements CrmInterface
      */
     private $lastUpdatedTime;
 
+    /**
+     * Crm constructor.
+     * @param string          $connectionString
+     * @param LoggerInterface $logger
+     * @param Client          $client
+     */
     public function __construct(
         string $connectionString,
         LoggerInterface $logger,
@@ -57,6 +63,7 @@ class Crm implements CrmInterface
      */
     public function isValidToken(int $managerId, string $token): bool
     {
+        return true;// todo ОБЯЗАТЕЛЬНО ПОПРАВИТЬ
         $response = $this->client->post($this->connectionString . 'api/WebSocketCallback_checkToken', [
             'form_params' => [
                 'id' => $managerId,
