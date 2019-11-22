@@ -13,8 +13,8 @@ $stdoutLoggerHandler->setFormatter(
 $fileHandler = new StreamHandler(__DIR__ . '/../../ws.error.log', Logger::ERROR);
 
 return [
-    'port' => 25025,
-    'backendAddr' => 'http://localhost:8080/',
+    'port' => 36326,
+    'backendAddr' => 'http://crm.studylab.ru/',
     'logger' => new Logger('PhpWebSocketApplication', [
         $stdoutLoggerHandler,
         $fileHandler,
